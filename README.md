@@ -1,3 +1,6 @@
-# lumixengine_html
-HTML rendering plugin for Lumix Engine
-Work in progress, not usable at all at the moment.
+# HTML/CSS rendering plugin for Lumix Engine
+
+**Work in progress, not really usable at all at the moment.**
+
+
+
