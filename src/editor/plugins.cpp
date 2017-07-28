@@ -35,7 +35,7 @@ struct HTMLDocumentContainer : litehtml::document_container
 		}
 		else
 		{
-			strcpy_s(url, "https://");
+			strcpy_s(url, "http://");
 			strcat_s(url, host);
 			strcat_s(url, "/");
 			strcat_s(url, path);
@@ -66,18 +66,31 @@ struct HTMLDocumentContainer : litehtml::document_container
 		unsigned int decoration,
 		litehtml::font_metrics* fm) override
 	{
-		fm->height = size;
-		fm->ascent = size;
-		fm->descent = 0;
-		return 0;
+		RenderInterface* ri = m_app.getWorldEditor()->getRenderInterface();
+		ImFont* font = ri->addFont("bin/veramono.ttf", size);
+
+		fm->height = font->Ascent - font->Descent;
+		fm->ascent = font->Ascent;
+		fm->descent = font->Descent;
+		return (litehtml::uint_ptr)font;
 	}
 
 
 	void delete_font(litehtml::uint_ptr hFont) override {}
+
+
 	int text_width(const litehtml::tchar_t* text, litehtml::uint_ptr hFont) override
 	{
-		return ImGui::GetFont() ? ImGui::CalcTextSize(text).x : 50;
+		if (!hFont) return 50;
+		
+		ImGui::PushFont((ImFont*)hFont);
+		ImVec2 size = ImGui::CalcTextSize(text);
+		ImGui::PopFont();
+
+		return size.x;
 	}
+
+
 	void draw_text(litehtml::uint_ptr hdc,
 		const litehtml::tchar_t* text,
 		litehtml::uint_ptr hFont,
@@ -87,8 +100,11 @@ struct HTMLDocumentContainer : litehtml::document_container
 		ImGuiWindow* win = ImGui::GetCurrentWindow();
 		ImVec2 imgui_pos = {win->Pos.x + (float)pos.x, win->Pos.y + (float)pos.y};
 		ImColor col(color.red, color.green, color.blue, color.alpha);
-		win->DrawList->AddText(imgui_pos, col, text);
+		ImFont* font = (ImFont*)hFont;
+		win->DrawList->AddText(font, font->FontSize, imgui_pos, col, text);
 	}
+
+
 	int pt_to_px(int pt) override { /*TODO*/ return pt; }
 	int get_default_font_size() const override { return 16; }
 	const litehtml::tchar_t* get_default_font_name() const override { return _t("Times New Roman"); }
@@ -350,7 +366,7 @@ struct HTMLPlugin LUMIX_FINAL : public StudioApp::IPlugin
 	{
 		static bool first = true;
 		static char host[256] = "google.com";
-		static char path[256] = "https://www.google.com/ncr";
+		static char path[256] = "http://www.google.com/ncr";
 		if (first)
 		{
 			IAllocator& allocator = m_app.getWorldEditor()->getAllocator();
