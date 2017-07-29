@@ -71,7 +71,8 @@ struct HTMLDocumentContainer : litehtml::document_container
 
 		fm->height = font->Ascent - font->Descent;
 		fm->ascent = font->Ascent;
-		fm->descent = font->Descent;
+		fm->descent = -font->Descent;
+		//bool underline = (decoration & litehtml::font_decoration_underline) != 0;
 		return (litehtml::uint_ptr)font;
 	}
 
@@ -97,10 +98,10 @@ struct HTMLDocumentContainer : litehtml::document_container
 		litehtml::web_color color,
 		const litehtml::position& pos) override
 	{
-		ImGuiWindow* win = ImGui::GetCurrentWindow();
-		ImVec2 imgui_pos = {win->Pos.x + (float)pos.x, win->Pos.y + (float)pos.y};
-		ImColor col(color.red, color.green, color.blue, color.alpha);
 		ImFont* font = (ImFont*)hFont;
+		ImGuiWindow* win = ImGui::GetCurrentWindow();
+		ImVec2 imgui_pos = {win->Pos.x + (float)pos.x, win->Pos.y + pos.y};
+		ImColor col(color.red, color.green, color.blue, color.alpha);
 		win->DrawList->AddText(font, font->FontSize, imgui_pos, col, text);
 	}
 
@@ -395,6 +396,21 @@ struct HTMLPlugin LUMIX_FINAL : public StudioApp::IPlugin
 			{
 				litehtml::position clip(0, 0, 1024, 1024);
 				m_document->draw((litehtml::uint_ptr)this, 0, 0, &clip);
+
+				ImVec2 mouse_pos = ImGui::GetMousePos();
+				ImVec2 win_pos = ImGui::GetWindowPos();
+				mouse_pos.x = mouse_pos.x - win_pos.x;
+				mouse_pos.y = mouse_pos.y - win_pos.y;
+				std::vector<litehtml::position> redraw_boxes;
+				if (ImGui::IsMouseClicked(0))
+				{
+					m_document->on_lbutton_down(mouse_pos.x, mouse_pos.y, mouse_pos.x, mouse_pos.y, redraw_boxes);
+				}
+				if (ImGui::IsMouseReleased(0))
+				{
+					m_document->on_lbutton_up(mouse_pos.x, mouse_pos.y, mouse_pos.x, mouse_pos.y, redraw_boxes);
+				}
+				m_document->on_mouse_over(mouse_pos.x, mouse_pos.y, mouse_pos.x, mouse_pos.y, redraw_boxes);
 			}
 			ImGui::EndChildFrame();
 		}
