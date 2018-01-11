@@ -1,6 +1,8 @@
 # HTML/CSS rendering plugin for [Lumix Engine](https://github.com/nem0/lumixengine)
 
-**Work in progress, not really usable at all at the moment.**
+[https://twitter.com/ocornut/status/890210588600565762](Screenshot)
+
+**This is not supported.**
 
 
 
